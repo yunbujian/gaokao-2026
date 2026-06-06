@@ -147,9 +147,101 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   .data-cell{border-right:none;border-bottom:1px solid var(--border)}
   .data-cell:last-child{border-bottom:none}
 }
+
+/* ══ TOC SIDEBAR ══ */
+#toc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:700;opacity:0;pointer-events:none;transition:opacity .3s}
+#toc-backdrop.open{opacity:1;pointer-events:auto}
+
+#toc-sidebar{
+  position:fixed;top:52px;left:0;bottom:0;
+  width:min(272px,82vw);
+  background:var(--bg2);border-right:1px solid var(--border);
+  z-index:800;
+  transform:translateX(-100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+#toc-sidebar.open{transform:translateX(0)}
+
+.toc-sb-header{
+  padding:1.1rem 1.4rem .9rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:baseline;justify-content:space-between;
+  flex-shrink:0;
+}
+.toc-sb-title{font-size:.82rem;font-weight:900;letter-spacing:.04em;color:var(--ink)}
+.toc-sb-sub{font-family:var(--mono);font-size:.5rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.toc-sb-close{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--mono);font-size:.65rem;color:var(--muted);
+  padding:.2rem .4rem;transition:color .2s;
+}
+.toc-sb-close:hover{color:var(--ink)}
+
+.toc-sb-nav{overflow-y:auto;flex:1;padding:.6rem 0 1.5rem;-webkit-overflow-scrolling:touch}
+.toc-sb-nav a{
+  display:flex;align-items:baseline;gap:.65rem;
+  padding:.65rem 1.4rem;
+  text-decoration:none;color:var(--ink-55);
+  font-size:.82rem;font-weight:300;line-height:1.45;
+  border-left:2px solid transparent;
+  transition:color .18s,border-color .18s,background .18s;
+}
+.toc-sb-nav a:hover{color:var(--ink);background:var(--ink-02)}
+.toc-sb-nav a.active{color:var(--accent);border-left-color:var(--accent);background:var(--ink-02)}
+.toc-sb-nav a .n{font-family:var(--mono);font-size:.52rem;color:var(--muted);flex-shrink:0;transition:color .18s}
+.toc-sb-nav a.active .n{color:var(--accent)}
+
+/* 收起/展开 tab */
+#toc-toggle{
+  position:fixed;
+  left:0;top:50%;transform:translateY(-50%);
+  z-index:810;
+  background:var(--bg3);border:1px solid var(--border);
+  border-left:none;border-radius:0 4px 4px 0;
+  padding:.7rem .28rem;cursor:pointer;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  font-family:var(--mono);font-size:.52rem;letter-spacing:.18em;
+  color:var(--muted);text-transform:uppercase;
+  transition:left .32s cubic-bezier(.4,0,.2,1),background .2s,color .2s;
+  line-height:1;
+}
+#toc-toggle:hover{background:var(--accent);color:#faf8f5;border-color:var(--accent)}
+#toc-toggle.open{left:min(272px,82vw)}
+
 </style>
 </head>
 <body>
+
+
+<!-- TOC SIDEBAR -->
+<div id="toc-backdrop"></div>
+<aside id="toc-sidebar">
+  <div class="toc-sb-header">
+    <div>
+      <div class="toc-sb-title">目录</div>
+      <div class="toc-sb-sub">Table of Contents</div>
+    </div>
+    <button class="toc-sb-close" id="toc-close">收起</button>
+  </div>
+  <nav class="toc-sb-nav" id="toc-nav">
+    <a href="#sec-intro"><span class="n">01</span>为什么今年要来做这场直播</a>
+    <a href="#sec-p1"><span class="n">02</span>原则一：投入产出比</a>
+    <a href="#sec-p2"><span class="n">03</span>原则二：分数是概率云</a>
+    <a href="#sec-p3"><span class="n">04</span>原则三四：适度紧张 + 高考去魅</a>
+    <a href="#sec-p5"><span class="n">05</span>原则五：失败的代价</a>
+    <a href="#sec-p6"><span class="n">06</span>原则六：高考奖励耐心</a>
+    <a href="#sec-prep"><span class="n">07</span>考前两天：生物钟的科学</a>
+    <a href="#sec-site"><span class="n">08</span>踩点全指南</a>
+    <a href="#sec-parents"><span class="n">09</span>爸妈的反常 + 考场进场</a>
+    <a href="#sec-chinese"><span class="n">10</span>语文：20分钟的幻影</a>
+    <a href="#sec-math"><span class="n">11</span>数学：接受一定会考砸</a>
+    <a href="#sec-ai"><span class="n">12</span>高考之后：AI时代</a>
+    <a href="#sec-major"><span class="n">13</span>志愿：城市 > 专业 > 学校</a>
+  </nav>
+</aside>
+<button id="toc-toggle">目录</button>
 
 <div class="progress-bar" id="progress"></div>
 
@@ -642,15 +734,61 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 </footer>
 
 <script>
+// 进度条
 window.addEventListener('scroll',()=>{
   const total=document.body.scrollHeight-window.innerHeight;
   document.getElementById('progress').style.width=(window.scrollY/total*100)+'%';
 });
+
+// 主题切换
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   if(isDark){document.documentElement.removeAttribute('data-theme');localStorage.setItem('gaokao-theme','light');}
   else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('gaokao-theme','dark');}
 });
+
+// 侧边栏目录
+const sidebar=document.getElementById('toc-sidebar');
+const toggle=document.getElementById('toc-toggle');
+const backdrop=document.getElementById('toc-backdrop');
+const closeBtn=document.getElementById('toc-close');
+
+function openToc(){
+  sidebar.classList.add('open');
+  toggle.classList.add('open');
+  backdrop.classList.add('open');
+}
+function closeToc(){
+  sidebar.classList.remove('open');
+  toggle.classList.remove('open');
+  backdrop.classList.remove('open');
+}
+toggle.addEventListener('click',()=>sidebar.classList.contains('open')?closeToc():openToc());
+closeBtn.addEventListener('click',closeToc);
+backdrop.addEventListener('click',closeToc);
+
+// 点击链接后在手机上自动收起
+document.getElementById('toc-nav').querySelectorAll('a').forEach(a=>{
+  a.addEventListener('click',()=>{if(window.innerWidth<900)closeToc();});
+});
+
+// 滚动高亮当前章节
+const headings=[...document.querySelectorAll('h2[id]')];
+const navLinks=[...document.querySelectorAll('#toc-nav a')];
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const active=navLinks.find(l=>l.getAttribute('href')==='#'+e.target.id);
+      if(active){
+        active.classList.add('active');
+        // 让目录滚动到当前项可见
+        active.scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+headings.forEach(h=>observer.observe(h));
 </script>
 
 </body>
